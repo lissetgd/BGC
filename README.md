@@ -1,7 +1,7 @@
-BGC-Analisis de Red
+BGC-Análisis de Red
 
   Equipo:
-- Barbara Lisset Gonzalez Duran
+- Bárbara Lisset González Durán
 - Ana Gabriela Romero Toriz
 - Crisrtian Romero Trujeque
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
