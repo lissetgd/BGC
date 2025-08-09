@@ -308,6 +308,13 @@ def actualizar_idioma(nuevo_idioma_seleccionado):
     else:
         show_frame("configuracion")
 
+img_act = None
+label_usup = None
+label_usupu = None
+label_usuh = None
+label_usus = None
+label_usuc = None
+
 # --- Interfaz de Inicio de Sesión ---
 def iniciar_sesion():
     """
@@ -338,6 +345,7 @@ def interfaz_principal():
     Define y configura la interfaz principal de la aplicación,
     que incluye el menú lateral y el panel de notificaciones en tiempo real.
     """
+    global img_act, label_usup
     principal_frame = CTkFrame(root, fg_color='#010101')
     # No lo mostramos aquí, solo lo creamos y lo guardamos. `show_frame` lo mostrará cuando sea necesario.
     app_frames["principal"] = principal_frame # Almacena el frame principal en el diccionario global.
@@ -346,10 +354,18 @@ def interfaz_principal():
     principal_frame.columnconfigure(1, weight=1) # La segunda columna (contenido) se expande.
     principal_frame.rowconfigure(0, weight=1) # La primera fila se expande.
 
-    try:
-        logou_image = Image.open("Imagenes/usu.png") 
-        logou_ctk = CTkImage(light_image=logou_image, dark_image=logou_image, size=(90, 90))
+    # Menú lateral (Sidebar)
+    menu_frame = CTkFrame(principal_frame, fg_color="#1A1A1A", width=150)
+    menu_frame.grid(column=0, row=0, sticky='ns') # Se adhiere al norte y sur.
 
+    try:
+        global label_usup
+        if img_act is None:
+            img = Image.open("Imagenes/usu.png").resize((150, 150))
+            img_act = CTkImage(light_image=img, dark_image=img, size=(150, 150))
+
+        label_usup = CTkLabel(master=menu_frame, image=img_act, text="")
+        label_usup.pack(pady=(10, 0))
     except Exception as e:
         print("Error cargando icono de usuario:", e)
 
@@ -384,15 +400,6 @@ def interfaz_principal():
         print("Error cargando icono de configuración:", e)
 
 
-    # Menú lateral (Sidebar)
-    menu_frame = CTkFrame(principal_frame, fg_color="#1A1A1A", width=150)
-    menu_frame.grid(column=0, row=0, sticky='ns') # Se adhiere al norte y sur.
-
-    label_usu = CTkLabel(master=menu_frame, image=logou_ctk, text="")
-    label_usu.pack(pady=(10, 0))  # Ajusta el margen según lo que necesites
-
-    CTkLabel(menu_frame, text="Romero", font=('sans serif', 20, 'bold')).pack(pady=(20, 10))    
-
 # Botones del menú que usan `lambda` para llamar a `show_frame` con el nombre del frame correspondiente.
     CTkButton(menu_frame, text=T('principal'), image=icon_home ,fg_color="#333333", command=lambda: show_frame("principal")).pack(fill='x', padx=10, pady=5)
     CTkButton(menu_frame, text=T('usuario'), image=icon_usuario, compound="left", fg_color="#333333", command=lambda: show_frame("usuario")).pack(fill='x', padx=10, pady=5)
@@ -414,21 +421,15 @@ def interfaz_principal():
     top_frame.grid(row=0, column=0, sticky='ew', pady=(0, 10))
     top_frame.columnconfigure(0, weight=1)
 
-    CTkLabel(top_frame, text=T("notificaciones"), font=("sans serif", 18)).grid(row=0, column=0, sticky='w', padx=10)
-
-    try:
-        bell_icon = Image.open("Imagenes/campana2.png").resize((35, 35))
-        bell_ctk = CTkImage(light_image=bell_icon, dark_image=bell_icon, size=(35, 35))
-        CTkLabel(top_frame, image=bell_ctk, text="").grid(row=0, column=1, sticky='e', padx=10)
-    except Exception as e:
-        print(T("error_cargar_campana", e))
-
 
 # --- Interfaz de Usuario ---
 def interfaz_usuario():
     """
     Define y configura la interfaz de usuario, mostrando información del perfil.
     """
+
+    global imagen_label, label_usupu
+
     usuario_frame = CTkFrame(root, fg_color='#010101')
     app_frames["usuario"] = usuario_frame # Almacena el frame en el diccionario global.
     usuario_frame.grid_forget() # Lo oculta inmediatamente después de crearlo.
@@ -479,11 +480,9 @@ def interfaz_usuario():
     except Exception as e:
         print("Error cargando icono de configuración:", e)
 
-    label_usu = CTkLabel(master=sidebar, image=logou_ctk, text="")
-    label_usu.pack(pady=(10, 0))  # Ajusta el margen según lo que necesites
-
-
-    CTkLabel(sidebar, text="Romero", font=('sans serif', 20, 'bold')).pack(pady=(20, 10))    
+    label_usupu = CTkLabel(master=sidebar, image=logou_ctk, text="")
+    label_usupu.pack(pady=(10, 0))  # Ajusta el margen según lo que necesites
+   
 
     # Botones del menú para navegar entre interfaces.
     CTkButton(sidebar, text=T('principal'),image=icon_home ,fg_color="#333333", command=lambda: show_frame("principal")).pack(fill='x', padx=10, pady=5)
@@ -499,12 +498,56 @@ def interfaz_usuario():
 
     CTkLabel(main_content_frame, text=T("Usuario"), font=('sans serif', 20, 'bold'), text_color="white").grid(row=0, column=0, pady=(10, 5))
 
-    try:
-        img = Image.open("Imagenes/usuario.png").resize((100, 100))
-        perfil_ctk = CTkImage(light_image=img, dark_image=img, size=(100, 100))
-        CTkLabel(main_content_frame, image=perfil_ctk, text="").grid(row=1, column=0, pady=(5, 10))
-    except Exception as e:
-        print(T("error_cargar_imagen_usuario", e))
+
+    def cambiar_foto():
+        global imagen_label, label_usup, label_usupu, img_act
+        archivo = filedialog.askopenfilename(title=T("seleccionar_imagen"), filetypes=[("Image files", ".png;.jpg;*.jpeg")])
+        if archivo:
+            try:
+                img = Image.open(archivo).resize((150, 150))
+                nueva_img = CTkImage(light_image=img, dark_image=img, size=(150, 150))
+
+                # Actualiza la imagen local de la interfaz usuario
+                imagen_label.configure(image=nueva_img)
+                imagen_label.image = nueva_img 
+
+                # Actualiza la imagen global para que otras interfaces puedan usarla
+                img_act = nueva_img
+
+                if label_usup:
+                    label_usup.configure(image=img_act)
+                    label_usup.image = img_act
+
+                if label_usupu:
+                    label_usupu.configure(image=img_act)
+                    label_usupu.image = img_act
+
+                if label_usuh:
+                    label_usuh.configure(image=img_act)
+                    label_usuh.image = img_act
+
+                if label_usus:
+                    label_usuc.configure(image=img_act)
+                    label_usuc.image = img_act
+
+                if label_usus:
+                    label_usus.configure(image=img_act)
+                    label_usus.image = img_act  
+
+                boton_foto.configure(text=T("Actualizar foto"))      
+
+            except Exception as e:
+                print(f"Error al cargar la imagen: {e}")
+
+    img = Image.open("Imagenes/usu.png").resize((100, 100))
+    perfil_ctk = CTkImage(light_image=img, dark_image=img, size=(100, 100))
+    imagen_label = CTkLabel(main_content_frame, image=perfil_ctk, text="")
+    imagen_label.grid(row=1, column=0, pady=(5, 10))
+
+    ###CTkButton(main_content_frame, text=T("Añadir foto"), command=cambiar_foto, fg_color="#333333").grid(row=2, column=0, pady=(5, 10))
+    boton_foto = CTkButton(main_content_frame, text=T("Añadir foto"), command=cambiar_foto, fg_color="#333333")
+    boton_foto.grid(row=2, column=0, pady=(5, 10))
+
 
     CTkLabel(main_content_frame, text="Romero", font=('sans serif', 16), text_color="white").grid(row=2, column=0, pady=2)
     CTkLabel(main_content_frame, text="romero@example.com", font=('sans serif', 14), text_color="#AAAAAA").grid(row=3, column=0, pady=2)
@@ -516,6 +559,7 @@ def interfaz_historial():
     """
     en la base de datos.
     """
+    global label_usuh, img_act
     historial_frame = CTkFrame(root, fg_color='#010101')
     app_frames["historial"] = historial_frame # Almacena el frame.
     historial_frame.grid_forget() # Lo oculta inicialmente.
@@ -530,11 +574,15 @@ def interfaz_historial():
     sidebar.columnconfigure(0, weight=1)
 
     try:
-        logou_image = Image.open("Imagenes/usu.png") 
-        logou_ctk = CTkImage(light_image=logou_image, dark_image=logou_image, size=(90, 90))
+        global label_usuh
+        if img_act is None:
+            img = Image.open("Imagenes/usu.png").resize((150, 150))
+            img_act = CTkImage(light_image=img, dark_image=img, size=(150, 150))
 
+        label_usuh = CTkLabel(master=sidebar, image=img_act, text="")
+        label_usuh.pack(pady=(10, 0))
     except Exception as e:
-        print("Error cargando icono de usuario:", e)
+        print("Error cargando imagen en historial:", e)
     
     try:
         image = Image.open("Imagenes/perfil.png").resize((15, 15), Image.Resampling.LANCZOS)
@@ -566,11 +614,10 @@ def interfaz_historial():
     except Exception as e:
         print("Error cargando icono de configuración:", e)
 
-    label_usu = CTkLabel(master=sidebar, image=logou_ctk, text="")
-    label_usu.pack(pady=(10, 0))  # Ajusta el margen según lo que necesites
 
     CTkLabel(sidebar, text="Romero", font=('sans serif', 20, 'bold')).pack(pady=(20, 10))    
    
+
     CTkButton(sidebar, text=T('principal'),image=icon_home ,fg_color="#333333", command=lambda: show_frame("principal")).pack(fill='x', padx=10, pady=5)
     CTkButton(sidebar, text=T('usuario'), image=icon_usuario, compound="left", fg_color="#333333", command=lambda: show_frame("usuario")).pack(fill='x', padx=10, pady=5)
     CTkButton(sidebar, text=T('historial'), image=icon_historial, compound="left", fg_color="#333333", command=lambda: show_frame("historial")).pack(fill='x', padx=10, pady=5)
@@ -678,6 +725,7 @@ def interfaz_soporte():
     """
     Define y configura la interfaz de soporte técnico.
     """
+    global label_usus, img_act
     soporte_frame = CTkFrame(root, fg_color='#010101')
     app_frames["soporte"] = soporte_frame # Almacena el frame.
     soporte_frame.grid_forget() # Oculta inicialmente.
@@ -691,11 +739,15 @@ def interfaz_soporte():
     sidebar.columnconfigure(0, weight=1)
 
     try:
-        logou_image = Image.open("Imagenes/usu.png") 
-        logou_ctk = CTkImage(light_image=logou_image, dark_image=logou_image, size=(90, 90))
+        global label_usus
+        if img_act is None:
+            img = Image.open("Imagenes/usu.png").resize((150, 150))
+            img_act = CTkImage(light_image=img, dark_image=img, size=(150, 150))
 
+        label_usus = CTkLabel(master=sidebar, image=img_act, text="")
+        label_usus.pack(pady=(10, 0))
     except Exception as e:
-        print("Error cargando icono de usuario:", e)
+        print("Error cargando imagen en soporte:", e)
 
     try:
         image = Image.open("Imagenes/perfil.png").resize((15, 15), Image.Resampling.LANCZOS)
@@ -727,11 +779,6 @@ def interfaz_soporte():
     except Exception as e:
         print("Error cargando icono de configuración:", e)
 
-    label_usu = CTkLabel(master=sidebar, image=logou_ctk, text="")
-    label_usu.pack(pady=(10, 0))  # Ajusta el margen según lo que necesites
-
-
-    CTkLabel(sidebar, text="Romero", font=('sans serif', 20, 'bold')).pack(pady=(20, 10))    
 
     CTkButton(sidebar, text=T('principal'),image=icon_home ,fg_color="#333333", command=lambda: show_frame("principal")).pack(fill='x', padx=10, pady=5)
     CTkButton(sidebar, text=T('usuario'), image=icon_usuario, compound="left", fg_color="#333333", command=lambda: show_frame("usuario")).pack(fill='x', padx=10, pady=5)
@@ -745,17 +792,20 @@ def interfaz_soporte():
     main_content_frame.grid(row=0, column=1, sticky='nsew', padx=40, pady=40)
     main_content_frame.columnconfigure(0, weight=1)
 
-    CTkLabel(main_content_frame, text=T("soporte_tecnico"), font=('sans serif', 20, 'bold'), text_color="white").grid(row=0, column=0, pady=(10, 5))
-    CTkLabel(main_content_frame, text=T("contacto_soporte"), font=('sans serif', 14), text_color="#AAAAAA").grid(row=1, column=0, pady=5)
+    CTkLabel(main_content_frame, text=T("Soporte Técnico"), font=('sans serif', 20, 'bold'), text_color="white").grid(row=0, column=0, pady=(10, 5))
+    CTkLabel(main_content_frame, text=T("Contactos Soporte"), font=('sans serif', 14), text_color="#AAAAAA").grid(row=1, column=0, pady=5)
     CTkLabel(main_content_frame, text=T("----------------------------------------------------------------"),text_color="#DDDDDD").grid(row=2, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("email_soporte"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=3, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("telefono_soporte"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=4, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("----------------------------------------------------------------"),text_color="#DDDDDD").grid(row=5, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("email_soporte"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=6, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("telefono_soporte"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=7, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("----------------------------------------------------------------"),text_color="#DDDDDD").grid(row=8, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("email_soporte"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=9, column=0, pady=2)
-    CTkLabel(main_content_frame, text=T("telefono_soporte"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=10, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Nombre: Barbara Lisset Gonzalez Duran"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=3, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Email: barbi.lisset10@gmail.com"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=4, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Teléfono: 2222153877"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=5, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("----------------------------------------------------------------"),text_color="#DDDDDD").grid(row=6, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Nombre: Ana Gabriela Romero Toriz"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=7, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Email: gtoriz10v@gmail.com"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=8, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Teléfono: 2482033049"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=9, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("----------------------------------------------------------------"),text_color="#DDDDDD").grid(row=10, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Nombre: Cristian Romero Trujeque"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=11, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Email: romerotrujuquecristian@gmail.com"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=12, column=0, pady=2)
+    CTkLabel(main_content_frame, text=T("Teléfono: 2229071425"), font=('sans serif', 14), text_color="#DDDDDD").grid(row=13, column=0, pady=2)
 
 # --- Interfaz de Configuración ---
 def interfaz_configuracion():
@@ -763,6 +813,7 @@ def interfaz_configuracion():
     Define y configura la interfaz de configuración del sistema,
     incluyendo la opción de cambiar el idioma.
     """
+    global label_usuc, img_act
     config_frame = CTkFrame(root, fg_color='#010101')
     app_frames["configuracion"] = config_frame # Almacena el frame.
     config_frame.grid_forget() # Oculta inicialmente.
@@ -776,11 +827,15 @@ def interfaz_configuracion():
     sidebar.columnconfigure(0, weight=1)
 
     try:
-        logou_image = Image.open("Imagenes/usu.png") 
-        logou_ctk = CTkImage(light_image=logou_image, dark_image=logou_image, size=(90, 90))
+        global label_usuc
+        if img_act is None:
+            img = Image.open("Imagenes/usu.png").resize((150, 150))
+            img_act = CTkImage(light_image=img, dark_image=img, size=(150, 150))
 
+        label_usuc = CTkLabel(master=sidebar, image=img_act, text="")
+        label_usuc.pack(pady=(10, 0))
     except Exception as e:
-        print("Error cargando icono de usuario:", e)
+        print("Error cargando imagen en configuración:", e)
 
     try:
         image = Image.open("Imagenes/perfil.png").resize((15, 15), Image.Resampling.LANCZOS)
@@ -812,11 +867,6 @@ def interfaz_configuracion():
     except Exception as e:
         print("Error cargando icono de configuración:", e)
 
-    label_usu = CTkLabel(master=sidebar, image=logou_ctk, text="")
-    label_usu.pack(pady=(10, 0))  # Ajusta el margen según lo que necesites
-
-    CTkLabel(sidebar, text="Romero", font=('sans serif', 20, 'bold')).pack(pady=(20, 10))    
-    
     CTkButton(sidebar, text=T('principal'),image=icon_home ,fg_color="#333333", command=lambda: show_frame("principal")).pack(fill='x', padx=10, pady=5)
     CTkButton(sidebar, text=T('usuario'), image=icon_usuario, compound="left", fg_color="#333333", command=lambda: show_frame("usuario")).pack(fill='x', padx=10, pady=5)
     CTkButton(sidebar, text=T('historial'), image=icon_historial, compound="left", fg_color="#333333", command=lambda: show_frame("historial")).pack(fill='x', padx=10, pady=5)
@@ -829,9 +879,8 @@ def interfaz_configuracion():
     main_content_frame.columnconfigure(0, weight=1)
     main_content_frame.rowconfigure(3, weight=1) # Para que haya espacio si se añaden más opciones
 
-    CTkLabel(main_content_frame, text=T("configuracion_sistema"), font=('sans serif', 20, 'bold'), text_color="white").grid(row=0, column=0, pady=(10, 5))
-    CTkLabel(main_content_frame, text=T("ajustes_desc"), font=('sans serif', 14), text_color="#AAAAAA").grid(row=1, column=0, pady=5)
-    
+    CTkLabel(main_content_frame, text=T("Configuración"), font=('sans serif', 20, 'bold'), text_color="white").grid(row=0, column=0, pady=(10, 5))
+
     # --- Opción de cambio de idioma ---
     idioma_label = CTkLabel(main_content_frame, text=T("seleccionar_idioma"), font=('sans serif', 14), text_color="white")
     idioma_label.grid(row=2, column=0, sticky='w', padx=10, pady=(20, 5))
